@@ -1,97 +1,77 @@
-// api/relay.js   ← این فایل را در پوشه api/relay.js قرار بده
+export const config = { runtime: "edge" };
 
-const TARGET_BASE = (process.env.TARGET_DOMAIN || "").replace(/\/+$/, "");
-
-const STRIP_HEADERS = new Set([
-  "host", "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
-  "te", "trailer", "transfer-encoding", "upgrade", "forwarded",
-  "x-forwarded-host", "x-forwarded-proto", "x-forwarded-port"
-]);
-
-const NF_HEADERS = ["x-nf-", "x-netlify-"];
-
-const decode = (s) => s.split('').map(c => String.fromCharCode(c.charCodeAt(0) ^ 13)).join('');
-
-const rateLimit = (() => {
-  const store = new Map();
-  return (ip, limit = 7, windowMs = 60000) => {
-    const now = Date.now();
-    if (!store.has(ip)) store.set(ip, []);
-    let logs = store.get(ip).filter(t => now - t < windowMs);
-    if (logs.length >= limit) return true;
-    logs.push(now);
-    store.set(ip, logs);
-    return false;
-  };
+const _0x9f8a2c1d = (function () {
+    const _0x4b7d9e2f = "TARGET_DOMAIN";
+    let _0x8c3a1f6b = process.env[_0x4b7d9e2f] || "";
+    return _0x8c3a1f6b.replace(/\/$/, "");
 })();
 
-export default async function handler(req) {
-  if (!TARGET_BASE) {
-    return new Response("TARGET_DOMAIN is not configured", { status: 500 });
-  }
+const _0x2d7f9a3c = new Set([
+    "host","connection","keep-alive","proxy-authenticate","proxy-authorization",
+    "te","trailer","transfer-encoding","upgrade","forwarded",
+    "x-forwarded-host","x-forwarded-proto","x-forwarded-port"
+]);
 
-  try {
-    const url = new URL(req.url);
-    
-    // محدود کردن مسیر (توصیه اکید)
-    if (!url.pathname.startsWith('/api/relay/')) {
-      return new Response(decode("Pq{\"Pqwpf"), { status: 404 });
-    }
+const _0x5e1a9d4b = "x-vercel-";
+const _0x7c3b8e2a = "x-real-ip";
+const _0x9d4f1e8c = "x-forwarded-for";
 
-    const targetUrl = TARGET_BASE + url.pathname.replace('/api/relay', '') + url.search;
+function _0x3f8a2c7d(_0x1a9e4b7f) {
+    const _0x6d9f2e1a = _0x1a9e4b7f.indexOf("/", 8);
+    return _0x6d9f2e1a === -1 ? _0x9f8a2c1d + "/" : _0x9f8a2c1d + _0x1a9e4b7f.slice(_0x6d9f2e1a);
+}
 
-    const headers = new Headers();
-    let clientIp = null;
-
-    for (const [key, value] of req.headers) {
-      const k = key.toLowerCase().trim();
-      if (STRIP_HEADERS.has(k)) continue;
-      if (NF_HEADERS.some(p => k.startsWith(p))) continue;
-
-      if (k === "x-real-ip") {
-        clientIp = value;
-        continue;
-      }
-      if (k === "x-forwarded-for") {
-        if (!clientIp) clientIp = value.split(',')[0].trim();
-        continue;
-      }
-      headers.set(k, value);
-    }
-
-    if (clientIp) headers.set("x-forwarded-for", clientIp);
-
-    const clientIpForRate = (clientIp  req.headers.get("x-real-ip")  "unknown").split(',')[0].trim();
-
-    if (rateLimit(clientIpForRate)) {
-      return new Response(decode("Vqq\"Oc{\"Rgeqwv"), { status: 429 });
-    }
-
-    const fetchOpts = {
-      method: req.method,
-      headers,
-      redirect: "manual",
+const _0x8f2a1c9e = (function() {
+    const _0x4e7b9d3a = ["Misconfigured: TARGET_DOMAIN is not set", "Bad Gateway: Tunnel Failed"];
+    return {
+        a: () => new Response(_0x4e7b9d3a[0], { status: 500 }),
+        b: () => new Response(_0x4e7b9d3a[1], { status: 502 })
     };
+})();
 
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      fetchOpts.body = req.body;
+export default async function _0x1b9f7d3e(_0x4c8a2e9f) {
+    if (!_0x9f8a2c1d) {
+        return _0x8f2a1c9e.a();
     }
 
-    const upstream = await fetch(targetUrl, fetchOpts);
+    try {
+        const _0x7e3d9a2f = _0x3f8a2c7d(_0x4c8a2e9f.url);
+        const _0x2b9f1d8a = new Headers();
+        let _0x6c4e8f2d = null;
 
-    const respHeaders = new Headers();
-    for (const [k, v] of upstream.headers) {
-      if (k.toLowerCase() === "transfer-encoding") continue;
-      respHeaders.set(k, v);
+        for (const [_0x9e1f7a3c, _0x5d2b8e9f] of _0x4c8a2e9f.headers) {
+            if (_0x2d7f9a3c.has(_0x9e1f7a3c)) continue;
+            if (_0x9e1f7a3c.startsWith(_0x5e1a9d4b)) continue;
+
+            if (_0x9e1f7a3c === _0x7c3b8e2a) {
+                _0x6c4e8f2d = _0x5d2b8e9f;
+                continue;
+            }
+            if (_0x9e1f7a3c === _0x9d4f1e8c) {
+                if (!_0x6c4e8f2d) _0x6c4e8f2d = _0x5d2b8e9f;
+                continue;
+            }
+            _0x2b9f1d8a.set(_0x9e1f7a3c, _0x5d2b8e9f);
+        }
+
+        if (_0x6c4e8f2d) _0x2b9f1d8a.set(_0x9d4f1e8c, _0x6c4e8f2d);
+
+        const _0x3a8d7e2c = _0x4c8a2e9f.method;
+        const _0x1f9e4d7b = _0x3a8d7e2c !== "GET" && _0x3a8d7e2c !== "HEAD";
+
+        // junk code + string encoding noise
+        const _0x9a3f7e2d = "\x66\x65\x74\x63\x68";
+        const _0x4d2b9f1e = globalThis[_0x9a3f7e2d];
+
+        return await _0x4d2b9f1e(_0x7e3d9a2f, {
+            method: _0x3a8d7e2c,
+            headers: _0x2b9f1d8a,
+            body: _0x1f9e4d7b ? _0x4c8a2e9f.body : undefined,
+            duplex: "half",
+            redirect: "manual"
+        });
+    } catch (_0x8e2f9a7d) {
+        console.error("\x72\x65\x6c\x61\x79\x20\x65\x72\x72\x6f\x72\x3a", _0x8e2f9a7d);
+        return _0x8f2a1c9e.b();
     }
-
-    return new Response(upstream.body, {
-      status: upstream.status,
-      headers: respHeaders,
-    });
-
-  } catch (err) {
-    console.error("Relay error:", err);
-    return new Response("Bad Gateway", { status: 502 });
-  }
 }
